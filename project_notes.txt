@@ -1,0 +1,103 @@
+Email dataset:
+	http://www.cs.cmu.edu/~enron/
+
+programming tools:
+	porter stemmer package in python
+
+named entity recognition
+https://gist.github.com/onyxfish/322906
+
+stemming.porter2 
+
+A Simple Bayesian Modelling Approach to Event Extraction from Twitter
+	https://aclweb.org/anthology/P/P14/P14-2114.xhtml
+
+
+nltk named entity extraction
+	https://gist.github.com/onyxfish/322906
+
+temporal parsing
+	https://github.com/cnorthwood/ternip
+
+Context-dependent Semantic Parsing for Time Expressions
+	http://homes.cs.washington.edu/~kentonl/pub/ladz-acl.2014.pdf
+
+Parsing Time: Learning to Interpret Time Expressions
+	http://web.stanford.edu/~jurafsky/2012-naacl-temporal.pdf
+
+https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/timex.py
+
+https://github.com/yifange/event_extraction
+	http://nlp.stanford.edu/courses/cs224n/2004/jblack-final-report.pdf
+
+http://people.tamu.edu/~zyue1105/yzhuo/yzhuo_files/IR_final_report.pdf
+
+http://web.mit.edu/6.863/www/fall2012/projects12.pdf
+http://nlp.stanford.edu/courses/cs224n/
+
+picking out good foods from yelp 
+	https://bitbucket.org/anjoola/food/overview
+
+	http://nlp.stanford.edu/courses/cs224n/2015/reports/4.pdf
+
+https://trevor.shinyapps.io/InteractiveApp/
+http://www.goodfoodbadservice.com/
+
+
+
+
+
+O/P Format:
+-----------
+Event Format:
+	EVENT_TYPE YYYY-MM-DD at 07:00 AM/PM [in EVENT_PLACE]
+	where EVENT_TYPE is of
+		- Marriage,
+		- Birthday party,
+		- Meeting,
+		- anniversary,
+		- Seminar
+
+TODO:
+-----
+- Prepare a 100 volume dataset for the above five events with the below info.
+	- w/o events(40%)
+		- event word is present but no time. (5)
+		- time is present but not relevant to the above 5 categories (10)
+			- eg.: historic events from wikipedia
+		- no events(25)
+	- with events(60%)
+		- past/future events of the above 5 categories.(60)
+
+- Modules
+	- Bag of words approach
+		- Pattern matching using regex 
+			- eg: starts at .* \d+:\d+(am|pm)
+	- Tokenization
+	- Spell correction
+		- Explore spell correction in nltk
+	- POS Tagger
+		- temporal tagging and pos
+	- Syntactic pattern(remove events in past tense)
+	- Synonymy for 5 events
+	- Named entity recognition
+- Workflow
+	- Perform tokenization, syntactic and then semantic.
+	- List the event iff a date/time is present and is one of the above 5 events.
+		- optional: location(NER)
+
+- Report
+
+
+Depeendency for mxDateTime package needed for Timex module
+http://www.egenix.com/products/python/mxBase/#Download
+
+possible improvements for report
+	- may could mean a date or a verb
+		- he may do this or in May of 2011, the minister resigned.
+	- include date ranges
+		- oct 5-6
+
+Data format:
+------------
+

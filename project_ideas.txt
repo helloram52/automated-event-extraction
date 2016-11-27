@@ -1,0 +1,9 @@
+Language detection:
+	http://alias-i.com/lingpipe/demos/tutorial/langid/read-me.html
+
+Picking out good dishes from Yelp
+	http://nlp.stanford.edu/courses/cs224n/2015/reports/4.pdf
+
+Entity Based Sentiment Analysis on Twitter
+	http://nlp.stanford.edu/courses/cs224n/2010/reports/drao-sidbatra.pdf
+	
