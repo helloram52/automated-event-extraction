@@ -4,12 +4,15 @@ from enchant.checker import SpellChecker
 from autocorrect import spell
 import timex
 from Event import Event
+from nltk.tag import StanfordNERTagger
+
 
 ENFORCE_LOWER_CASE = True
 KEYWORDS = ['marriage', 'birthday', 'meeting', 'anniversary', 'seminar']
 SYNONYMS_FOR_KEYWORDS = {}
 PAST_TENSE_TAGS = ['VBD','VBN']
 TIMEX_TAG = "<TIMEX2>"
+STANFORD_NER_PATH = '/Users/vads/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
 
 def writeOutput(outputFileName, line):
     with open(outputFileName, 'a') as outputFile:
@@ -113,8 +116,37 @@ def filterNonEvents(taggedLines):
 
     return events
 
+def extract_entity_names(t):
+    entity_names = []
+
+    if hasattr(t, 'label') and t.label:
+        if t.label() == 'NE':
+            entity_names.append(' '.join([child[0] for child in t]))
+        else:
+            for child in t:
+                entity_names.extend(extract_entity_names(child))
+
+    return entity_names
+
 def parseLocation(event):
-    return ""
+    event = re.sub("<TIMEX2>|</TIMEX2>", "", event)
+    print "event: {}".format(event)
+
+    entities = []
+    try:
+        nerTagger = StanfordNERTagger('/Users/vads/Downloads/stanford-ner-2014-06-16/classifiers/english.muc.7class.distsim.crf.ser.gz', STANFORD_NER_PATH)
+        entities = nerTagger.tag(event.split())
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+""
+    result = ""
+    for entity in entities:
+        print "entity: {}".format(entity)
+        if entity[1] != 'O':
+            result += entity[0]
+
+    print "location: {}".format(result)
+    return result
 
 if __name__ == '__main__':
 
@@ -147,4 +179,3 @@ if __name__ == '__main__':
         else:
             writeLog("INFO: Event Detected but event type did not match with required events :" + event)
 
-    pass
