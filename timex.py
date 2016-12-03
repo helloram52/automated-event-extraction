@@ -190,6 +190,7 @@ def ground(tagged_text, base_date):
                                           value, re.IGNORECASE))
             timex = `sum(num_list)` + ' ' + unit
 
+        month = ""
         # If timex matches ISO format, remove 'time' and reorder 'date'
         if re.match(r'\d+[/-]\d+[/-]\d+ \d+:\d+:\d+\.\d+', timex):
             dmy = re.split(r'\s', timex)[0]

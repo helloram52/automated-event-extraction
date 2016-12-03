@@ -2,7 +2,8 @@ import nltk, sys, re
 from nltk.corpus import wordnet
 from enchant.checker import SpellChecker
 from autocorrect import spell
-import nltk_contrib.timex as timex
+import timex
+from Event import Event
 
 ENFORCE_LOWER_CASE = True
 KEYWORDS = ['marriage', 'birthday', 'meeting', 'anniversary', 'seminar']
@@ -97,6 +98,7 @@ def isEventPast(line):
     for token in initialTokens:
         if token != '':
             tokens.append(token)
+
     taggedWords = nltk.pos_tag(tokens)
     for (word, tag) in taggedWords:
         if tag in PAST_TENSE_TAGS:
@@ -111,6 +113,9 @@ def filterNonEvents(taggedLines):
 
     return events
 
+def parseLocation(event):
+    return ""
+
 if __name__ == '__main__':
 
     #initialize variables
@@ -122,7 +127,7 @@ if __name__ == '__main__':
     #preprocess input data
     lines = preProcessData(inputFileName)
 
-    #perform POS/temporal expression tagging
+    #perform temporal expression tagging
     taggedLines = performTagging(lines)
 
     #select lines which have <TIMEX2> tag
@@ -134,9 +139,9 @@ if __name__ == '__main__':
         if isRequired:
             if not isEventPast(event):
                 eventDate = parseDate(event)
-                # eventLocation = parseLocation(line)
-                line = eventType + ":" + eventDate
-                writeOutput(outputFileName, line)
+                eventLocation = parseLocation(event)
+                eventObj = Event(eventType, eventDate, eventLocation)
+                writeOutput(outputFileName, eventObj.format())
             else:
                 writeLog("INFO: Event Detected but is identified as past event                   :" + event)
         else:
