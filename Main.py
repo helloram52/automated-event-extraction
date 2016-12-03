@@ -2,21 +2,19 @@ import nltk, sys, re
 from nltk.corpus import wordnet
 from enchant.checker import SpellChecker
 from autocorrect import spell
-import timex
+import timex, Utilities
 from Event import Event
 
 ENFORCE_LOWER_CASE = True
 KEYWORDS = ['marriage', 'birthday', 'meeting', 'anniversary', 'seminar']
 SYNONYMS_FOR_KEYWORDS = {}
 PAST_TENSE_TAGS = ['VBD','VBN']
-TIMEX_TAG = "<TIMEX2>"
+TIMEX_TAG = "</TIMEX2>"
 
-def writeOutput(outputFileName, line):
-    with open(outputFileName, 'a') as outputFile:
-        outputFile.write(line+"\n")
-
-def writeLog(line):
-    print line
+def initialize():
+    setupKeywords()
+    SYNONYMS_FOR_KEYWORDS['seminar'].append('lecture')
+    Utilities.setupLog()
 
 #parse input file - read all the input lines
 def parseInputFile(inputFileName):
@@ -35,6 +33,7 @@ def performSpellCorrection(line):
 
     return checker.get_text()
 
+#get synonyms for given word
 def getSynonyms(word):
     lemmas = []
     synsets = wordnet.synsets(word)
@@ -48,9 +47,6 @@ def setupKeywords():
     for word in KEYWORDS:
         SYNONYMS_FOR_KEYWORDS[word] = getSynonyms(word)
 
-def initialize():
-    setupKeywords()
-
 def isRequiredEvent(line, dict):
     for word in dict:
         for synonym in dict[word]:
@@ -58,66 +54,60 @@ def isRequiredEvent(line, dict):
                 return True, word
     return False, ""
 
-def splitLines(sentence, delimiter):
-    return sentence.split(delimiter)
-
 def getCommandLineArgs():
     return sys.argv[1], sys.argv[2]
 
 def preProcessData(input):
     # read input file
     inputData = parseInputFile(inputFileName)
-
     # perform spell correction
     correctSentence = performSpellCorrection(inputData)
-
     # split text into lines based on delimiter
-    lines = splitLines(correctSentence, ".")
+    lines = Utilities.split(correctSentence, ".")
 
     return lines
 
 def performTagging(lines):
     taggedLines = []
     for line in lines:
-        taggedLines.append(timex.tag(line))
+        taggedLine = ""
+        try:
+            taggedLine = timex.tag(line)
+            taggedLine = timex.ground(taggedLine, timex.gmt())
+        except:
+            taggedLine = ""
+
+        if not Utilities.isEmpty(taggedLine):
+            taggedLines.append(taggedLine)
 
     return taggedLines
 
-def parseDate(line):
-    if TIMEX_TAG in line:
-        r = re.compile(r'<TIMEX2>.+?</TIMEX2>')
-        dates = r.findall(line)
-        return re.sub("<TIMEX2>|</TIMEX2>", "", dates[0])
-
-    return ""
-
+    
+#check whether event is past
 def isEventPast(line):
-    initialTokens = line.split(" ")
+    initialTokens = Utilities.split(line, " ")
     tokens = []
     #remove empty or dummy tokens
     for token in initialTokens:
-        if token != '':
+        if not Utilities.isEmpty(token):
             tokens.append(token)
 
     taggedWords = nltk.pos_tag(tokens)
+
     for (word, tag) in taggedWords:
         if tag in PAST_TENSE_TAGS:
             return True
     return False
 
-def filterNonEvents(taggedLines):
-    events = []
-    for line in taggedLines:
-        if '<TIMEX2>' in line:
-            events.append(line)
-
-    return events
-
 def parseLocation(event):
     return ""
 
-if __name__ == '__main__':
+def setupEvent(event):
+    eventDate = Utilities.parseDate(event)
+    eventLocation = parseLocation(event)
+    return Event(eventType, eventDate, eventLocation)
 
+if __name__ == '__main__':
     #initialize variables
     initialize()
 
@@ -131,20 +121,21 @@ if __name__ == '__main__':
     taggedLines = performTagging(lines)
 
     #select lines which have <TIMEX2> tag
-    events = filterNonEvents(taggedLines)
+    events = Utilities.filter(taggedLines, TIMEX_TAG)
 
     #for lines identified as events, check each whether any word matches with synonyms for keywords
     for event in events:
         isRequired, eventType = isRequiredEvent(event, SYNONYMS_FOR_KEYWORDS)
         if isRequired:
+            eventObj = setupEvent(event)
             if not isEventPast(event):
-                eventDate = parseDate(event)
-                eventLocation = parseLocation(event)
-                eventObj = Event(eventType, eventDate, eventLocation)
-                writeOutput(outputFileName, eventObj.format())
+                Utilities.writeOutput(outputFileName, eventObj.format())
             else:
-                writeLog("INFO: Event Detected but is identified as past event                   :" + event)
+                if Utilities.isDateInFuture(event):
+                    Utilities.writeOutput(outputFileName, eventObj.format())
+                else:
+                    Utilities.writeLog("INFO: Event Detected but is identified as past event                   :" + event)
         else:
-            writeLog("INFO: Event Detected but event type did not match with required events :" + event)
+            Utilities.writeLog("INFO: Event Detected but event type did not match with required events :" + event)
 
     pass

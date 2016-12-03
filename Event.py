@@ -9,8 +9,8 @@ class Event(object):
     def format(self):
         formattedResult = ""
         if self.location != "":
-            formattedResult = "Event Type: {}, Date/time: {}, Location: {}".format(self.type, self.date, self.location)
+            formattedResult = "Event : {}, when: {}, where: {}".format(self.type, self.date, self.location)
         else:
-            formattedResult = "Event Type: {}, Date/time: {}".format(self.type, self.date)
+            formattedResult = "Event : {}, when: {}".format(self.type, self.date)
 
         return formattedResult
