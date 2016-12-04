@@ -65,15 +65,13 @@ def getCommandLineArgs():
 
 def preProcessData(input):
     # read input file
-    inputData = Utilities.parseInputFile(inputFileName)
+    inputObjects = Utilities.parseInputFile(inputFileName)
     # split text into lines based on delimiter
-    lines = Utilities.split(inputData, ".")
+    #lines = Utilities.split(inputData, ".")
+    # perform spell correction
     featureObjects = []
-    for line in lines:
-        featureObject = Features()
-        featureObject.setText(line)
-        # perform spell correction
-        featureObjects.append(performSpellCorrection(featureObject))
+    for obj in inputObjects:
+        featureObjects.append(performSpellCorrection(obj))
 
     return featureObjects
 
@@ -163,6 +161,8 @@ if __name__ == '__main__':
             obj.setEvent(eventObj)
             if not isEventPast(obj):
                 #["Original Text", "Lexical-Tokens", "Lexical-SpellCorrection", "Syntactic-POS tags", "Syntactic-Temporal tag", "Semantic-Synonym", "Semantic-Location" ]
+                Utilities.computePrecision(obj)
+                obj.setPredict("yes")
                 RESULT.append([obj.getEvent().type,
                                  obj.getEvent().date,
                                  obj.getEvent().location,
@@ -175,6 +175,8 @@ if __name__ == '__main__':
                                  obj.getSemanticFeatures().getLocation()])
             else:
                 if Utilities.isDateInFuture(obj.getSyntacticFeatures().getTemporalTag()):
+                    obj.setPredict("yes")
+                    Utilities.computePrecision(obj)
                     RESULT.append([obj.getEvent().type,
                                      obj.getEvent().date,
                                      obj.getEvent().location,
@@ -190,6 +192,12 @@ if __name__ == '__main__':
         else:
             Utilities.writeLog("INFO [IMPROVED APPROACH]: Event Detected but event type did not match with required events :" + obj.getText())
 
+
     Utilities.writeOutput(outputFileName, RESULT_HEADER)
     for feature in RESULT:
         Utilities.writeOutput(outputFileName, feature)
+
+    Utilities.computeRecall(featureObjects)
+
+    Utilities.printMetrics()
+

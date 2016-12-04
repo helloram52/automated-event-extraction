@@ -2,6 +2,7 @@ import Utilities
 import re, sys
 from tabulate import tabulate
 
+
 # Predefined strings.
 numbers = "(^a(?=\s)|one|two|three|four|five|six|seven|eight|nine|ten| \
           eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen| \
@@ -39,17 +40,17 @@ def isRequiredEvent(line):
 def preProcessData(input):
 
   # Read input file
-  inputData = Utilities.parseInputFile(inputFileName)
+  objects = Utilities.parseInputFile(inputFileName)
 
   # Split text into lines based on delimiter
-  lines = Utilities.split(inputData, ".")
+  #lines = Utilities.split(inputData, ".")
 
   # Get rid of empty lines.
-  lines = filter(None, lines)
+  #lines = filter(None, lines)
 
-  print "lines: {}".format(lines)
+  #print "lines: {}".format(lines)
 
-  return lines
+  return objects
 
 def extractDate(text):
   # Initialization
@@ -89,6 +90,8 @@ def extractDate(text):
   else:
     return ""
 
+
+
 def initialize():
   Utilities.setupLog()
 
@@ -103,18 +106,25 @@ if __name__ == '__main__':
 
   result = []
   for line in lines:
-    isRequired, eventType = isRequiredEvent(line)
+    isRequired, eventType = isRequiredEvent(line.getText())
     if isRequired:
       # print "line : {}".format(line)
-      eventDate = extractDate(line)
+      eventDate = extractDate(line.getText())
       if eventDate:
         # print "eventdate: ".format(eventDate)
-        result.append([eventType, eventDate, "", line])
+        if line.getActual() == "yes":
+            Utilities.incrementTP()
+
+        line.setPredict("yes")
+        result.append([eventType, eventDate, "", line.getText()])
       else:
-        Utilities.writeLog("INFO [NAIVE APPROACH]: Event Detected but is identified as past event                   :" + line)
+        Utilities.writeLog("INFO [NAIVE APPROACH]: Event Detected but is identified as past event                   :" + line.getText())
     else:
-      Utilities.writeLog("INFO [NAIVE APPROACH]: Event Detected but event type did not match with required events :" + line)
+      Utilities.writeLog("INFO [NAIVE APPROACH]: Event Detected but event type did not match with required events :" + line.getText())
 
   Utilities.writeOutput(outputFileName, ["Event", "When", "Where", "Text"])
   [ Utilities.writeOutput(outputFileName, x) for x in result ]
   # Utilities.writeOutput(outputFileName, tabulate(result, headers=["Event", "When", "Where", "Text"], tablefmt="grid"))
+
+  Utilities.computeRecall(lines)
+  Utilities.printMetrics()

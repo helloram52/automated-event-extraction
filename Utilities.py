@@ -1,7 +1,12 @@
 from datetime import datetime
 import logging, random, copy, re, csv
 import logging.config
-from SyntacticFeatures import SyntacticFeatures
+from Features import Features
+
+TRUE_POSITIVE = 0.0
+FALSE_POSITIVE = 0.0
+FALSE_NEGATIVE = 0.0
+TRUE_NEGATIVE = 0.0
 
 TIMEX_TAG = "</TIMEX2>"
 TIMEX_TAG_REGEX = r'<TIMEX2 .+>.+?</TIMEX2>'
@@ -17,8 +22,7 @@ def split(sentence, delimiter):
 def isEmpty(string):
     return string == '' or string == None
 
-#parse input file - read all the input lines
-def parseInputFile(inputFileName):
+def parseInputFileText(inputFileName):
     inputString = ""
     with open(inputFileName, 'r') as inputFile:
         for line in inputFile:
@@ -27,8 +31,22 @@ def parseInputFile(inputFileName):
             # print "\tline: {}".format(line)
             inputString = "{}{}".format(inputString, line.strip())
         #print "for ended: {}".format(inputString)
-
     return inputString
+
+def incrementTP():
+    global TRUE_POSITIVE
+    TRUE_POSITIVE += 1
+
+#parse input file - read all the input lines
+def parseInputFile(inputFileName):
+    featureObjects = []
+    with open(inputFileName, 'r') as inputFile:
+        csvFile = csv.reader(inputFile)
+        for line in csvFile:
+            feature = Features(line[0], line[1])
+            featureObjects.append(feature)
+
+    return featureObjects
 
 def setupLog():
     logging.basicConfig(level=logging.DEBUG,
@@ -84,8 +102,28 @@ def writeLog(line):
     #print line
     logging.warn(line)
 
+def computePrecision(obj):
+    global TRUE_POSITIVE, FALSE_POSITIVE
+    if obj.getActual() == "yes":
+        TRUE_POSITIVE += 1
+    else:
+        FALSE_POSITIVE += 1
+
+def computeRecall(featureObjects):
+    global FALSE_NEGATIVE, TRUE_NEGATIVE
+    for obj in featureObjects:
+        if obj.getActual() == "no" and obj.getPredicted() == "yes":
+            FALSE_NEGATIVE += 1
+        elif obj.getActual() == "no" and obj.getPredicted() == "no":
+            TRUE_NEGATIVE += 1
+
 #write data to output
 def writeOutput(outputFileName, row):
     with open(outputFileName, 'a') as outputFile:
         outputCSV = csv.writer(outputFile)
         outputCSV.writerow(row)
+
+def printMetrics():
+    print "TP: {}, FP : {}, FN: {}, TN: {}".format(TRUE_POSITIVE, FALSE_POSITIVE, FALSE_NEGATIVE, TRUE_NEGATIVE)
+    print "Precision : {}".format(TRUE_POSITIVE/(TRUE_POSITIVE+FALSE_POSITIVE))
+    print "Recall : {}".format(TRUE_POSITIVE / (TRUE_POSITIVE + FALSE_NEGATIVE))
