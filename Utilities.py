@@ -1,6 +1,7 @@
 from datetime import datetime
-import logging, random, copy, re
+import logging, random, copy, re, csv
 import logging.config
+from SyntacticFeatures import SyntacticFeatures
 
 TIMEX_TAG = "</TIMEX2>"
 TIMEX_TAG_REGEX = r'<TIMEX2 .+>.+?</TIMEX2>'
@@ -32,16 +33,16 @@ def parseDate(line):
 
 def filter(taggedLines, searchString):
     events = []
-    for (line, taggedLine) in taggedLines:
-        if searchString in taggedLine:
-            events.append((line, taggedLine))
+    for taggedLine in taggedLines:
+        if searchString in taggedLine.getSyntacticFeatures().getTemporalTag():
+            events.append(taggedLine)
 
     return events
 
 def firstMatching(pattern, string):
     expression = re.compile(pattern)
     results = expression.findall(string)
-    return results[0]
+    return results[0] if len(results) > 0 else ""
 
 def remove(pattern, string):
     return re.sub(pattern, "", string)
@@ -71,6 +72,7 @@ def writeLog(line):
     logging.warn(line)
 
 #write data to output
-def writeOutput(outputFileName, line):
+def writeOutput(outputFileName, row):
     with open(outputFileName, 'a') as outputFile:
-        outputFile.write(line+"\n")
+        outputCSV = csv.writer(outputFile)
+        outputCSV.writerow(row)
