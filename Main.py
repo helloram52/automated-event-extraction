@@ -7,11 +7,10 @@ from Event import Event
 from nltk.tag import StanfordNERTagger
 
 
-ENFORCE_LOWER_CASE = True
 KEYWORDS = ['marriage', 'birthday', 'meeting', 'anniversary', 'seminar']
 SYNONYMS_FOR_KEYWORDS = {}
 PAST_TENSE_TAGS = ['VBD','VBN']
-TIMEX_TAG = "<TIMEX2>"
+TIMEX_TAG = "</TIMEX2>"
 STANFORD_NER_PATH = '/Users/vads/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
 
 def initialize():
@@ -26,7 +25,7 @@ def parseInputFile(inputFileName):
         for line in inputFile:
             inputString = inputString.join(line)
 
-    return inputString.lower() if ENFORCE_LOWER_CASE else inputString
+    return inputString
 
 #perform spell correction
 def performSpellCorrection(line):
@@ -53,7 +52,7 @@ def setupKeywords():
 def isRequiredEvent(line, dict):
     for word in dict:
         for synonym in dict[word]:
-            if synonym in line:
+            if synonym in line.lower():
                 return True, word
     return False, ""
 
@@ -75,13 +74,13 @@ def performTagging(lines):
     for line in lines:
         taggedLine = ""
         try:
-            taggedLine = timex.tag(line)
+            taggedLine = timex.tag(line.lower())
             taggedLine = timex.ground(taggedLine, timex.gmt())
         except:
             taggedLine = ""
 
         if not Utilities.isEmpty(taggedLine):
-            taggedLines.append(taggedLine)
+            taggedLines.append( (line, taggedLine) )
 
     return taggedLines
 
@@ -115,16 +114,15 @@ def parseLocation(event):
 
     result = ""
     for entity in entities:
-        print "entity: {}".format(entity)
         if entity[1] != 'O':
-            result += entity[0]
+            result +=  " {}".format( entity[0] )
 
     print "location: {}".format(result)
     return result
 
-def setupEvent(event):
+def setupEvent((line, event)):
     eventDate = Utilities.parseDate(event)
-    eventLocation = parseLocation(event)
+    eventLocation = parseLocation(line)
     return Event(eventType, eventDate, eventLocation)
 
 if __name__ == '__main__':
@@ -144,10 +142,11 @@ if __name__ == '__main__':
     events = Utilities.filter(taggedLines, TIMEX_TAG)
 
     #for lines identified as events, check each whether any word matches with synonyms for keywords
-    for event in events:
+    for (line, event) in events:
+        print "event: {}".format(event)
         isRequired, eventType = isRequiredEvent(event, SYNONYMS_FOR_KEYWORDS)
         if isRequired:
-            eventObj = setupEvent(event)
+            eventObj = setupEvent((line, event))
             if not isEventPast(event):
                 Utilities.writeOutput(outputFileName, eventObj.format())
             else:

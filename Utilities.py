@@ -18,9 +18,9 @@ def isEmpty(string):
 
 def setupLog():
     logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s %(message)s',
-                        filename='eventDetector.log',
-                        filemode='w')
+        format='%(asctime)s %(levelname)s %(message)s',
+        filename='eventDetector.log',
+        filemode='w')
 
 def parseDate(line):
     if TIMEX_TAG in line:
@@ -32,9 +32,9 @@ def parseDate(line):
 
 def filter(taggedLines, searchString):
     events = []
-    for line in taggedLines:
-        if searchString in line:
-            events.append(line)
+    for (line, taggedLine) in taggedLines:
+        if searchString in taggedLine:
+            events.append((line, taggedLine))
 
     return events
 
