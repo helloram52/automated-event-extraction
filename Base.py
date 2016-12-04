@@ -12,9 +12,9 @@ week_day = "(monday|tuesday|wednesday|thursday|friday|saturday|sunday)"
 month = "(january|february|march|april|may|june|july|august|september| \
           october|november|december)"
 dmy = "(year|day|week|month)"
-rel_day = "(today|yesterday|tomorrow|tonight|tonite)"
-exp1 = "(before|after|earlier|later|ago)"
-exp2 = "(this|next|last)"
+rel_day = "(today|tomorrow|tonight|tonite)"
+exp1 = "(after)"
+exp2 = "(this)"
 iso = "\d+[/-]\d+[/-]\d+ \d+:\d+:\d+\.\d+"
 year = "((?<=\s)\d{4}|^\d{4})"
 regxp1 = "((\d+|(" + numbers + "[-\s]?)+) " + dmy + "s? " + exp1 + ")"
@@ -52,54 +52,48 @@ def preProcessData(input):
   return lines
 
 def extractDate(text):
-    # Initialization
-    timex_found = []
+  # Initialization
+  temporalExpressionFound = []
 
-    # re.findall() finds all the substring matches, keep only the full
-    # matching string. Captures expressions such as 'number of days' ago, etc.
-    found = reg1.findall(text)
-    found = [a[0] for a in found if len(a) > 1]
-    for timex in found:
-      timex_found.append(timex)
+  # re.findall() finds all the substring matches, keep only the full
+  # matching string. Captures expressions such as 'number of days' ago, etc.
+  found = reg1.findall(text)
+  found = [a[0] for a in found if len(a) > 1]
+  for timex in found:
+    temporalExpressionFound.append(timex)
 
-    # Variations of this thursday, next year, etc
-    found = reg2.findall(text)
-    found = [a[0] for a in found if len(a) > 1]
-    for timex in found:
-      timex_found.append(timex)
+  # Variations of this thursday, next year, etc
+  found = reg2.findall(text)
+  found = [a[0] for a in found if len(a) > 1]
+  for timex in found:
+    temporalExpressionFound.append(timex)
 
-    # today, tomorrow, etc
-    found = reg3.findall(text)
-    for timex in found:
-      timex_found.append(timex)
+  # today, tomorrow, etc
+  found = reg3.findall(text)
+  for timex in found:
+    temporalExpressionFound.append(timex)
 
-    # ISO
-    found = reg4.findall(text)
-    for timex in found:
-      timex_found.append(timex)
+  # ISO
+  found = reg4.findall(text)
+  for timex in found:
+    temporalExpressionFound.append(timex)
 
-    # Year
-    found = reg5.findall(text)
-    for timex in found:
-      timex_found.append(timex)
+  # Year
+  found = reg5.findall(text)
+  for timex in found:
+    temporalExpressionFound.append(timex)
 
-    print "temporal expressions: {}".format(timex_found)
-    if timex_found:
-      return ",".join(timex_found)
-    else:
-      return ""
+  # print "temporal expressions: {}".format(temporalExpressionFound)
+  if temporalExpressionFound:
+    return ",".join(temporalExpressionFound)
+  else:
+    return ""
 
-    # result = ""
-    # result
-    #   # Tag only temporal expressions which haven't been tagged.
-    # for timex in timex_found:
-    #   text = re.sub(timex + '(?!</TIMEX2>)', '<TIMEX2>' + timex + '</TIMEX2>', text)
-    #
-    # return
+def initialize():
+  Utilities.setupLog()
 
 if __name__ == '__main__':
-  # initialize variables
-  # initialize()
+  initialize()
 
   # read commmand line parameters
   inputFileName, outputFileName = getCommandLineArgs()
@@ -113,14 +107,14 @@ if __name__ == '__main__':
     if isRequired:
       # print "line : {}".format(line)
       eventDate = extractDate(line)
-      print "eventdate: ".format(eventDate)
-      result.append([eventType, eventDate, "", line])
+      if eventDate:
+        # print "eventdate: ".format(eventDate)
+        result.append([eventType, eventDate, "", line])
+      else:
+        Utilities.writeLog("INFO [NAIVE APPROACH]: Event Detected but is identified as past event                   :" + line)
+    else:
+      Utilities.writeLog("INFO [NAIVE APPROACH]: Event Detected but event type did not match with required events :" + line)
 
-  Utilities.writeOutput(outputFileName, tabulate(result, headers=["Event", "When", "Where", "Text"], tablefmt="grid"))
-
-# Steps:
-#   - isRequiredEvent()
-#   - isDatePresent()
-#     - keyword matching Mon-Sun, Jan - Dec, regex for date
-#   - If the above are true:
-#     -
+  Utilities.writeOutput(outputFileName, ["Event", "When", "Where", "Text"])
+  [ Utilities.writeOutput(outputFileName, x) for x in result ]
+  # Utilities.writeOutput(outputFileName, tabulate(result, headers=["Event", "When", "Where", "Text"], tablefmt="grid"))

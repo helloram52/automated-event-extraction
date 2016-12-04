@@ -186,10 +186,9 @@ if __name__ == '__main__':
                                      obj.getSemanticFeatures().getSynonym(),
                                      obj.getSemanticFeatures().getLocation()])
                 else:
-                    Utilities.writeLog("INFO: Event Detected but is identified as past event                   :" + obj.getText())
+                    Utilities.writeLog("INFO [IMPROVED APPROACH]: Event Detected but is identified as past event                   :" + obj.getText())
         else:
-            Utilities.writeLog("INFO: Event Detected but event type did not match with required events :" + obj.getText())
-
+            Utilities.writeLog("INFO [IMPROVED APPROACH]: Event Detected but event type did not match with required events :" + obj.getText())
 
     Utilities.writeOutput(outputFileName, RESULT_HEADER)
     for feature in RESULT:
