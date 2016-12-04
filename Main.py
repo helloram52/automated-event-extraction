@@ -11,8 +11,8 @@ KEYWORDS = ['marriage', 'birthday', 'meeting', 'anniversary', 'seminar']
 SYNONYMS_FOR_KEYWORDS = {}
 PAST_TENSE_TAGS = ['VBD','VBN']
 TIMEX_TAG = "</TIMEX2>"
-#STANFORD_NER_ROOT = "/Users/vads/Downloads/stanford-ner-2014-06-16/"
-STANFORD_NER_ROOT = "/home/ram/Downloads/stanford-ner-2014-06-16/"
+STANFORD_NER_ROOT = "/Users/vads/Downloads/stanford-ner-2014-06-16/"
+# STANFORD_NER_ROOT = "/home/ram/Downloads/stanford-ner-2014-06-16/"
 STANFORD_NER_PATH = STANFORD_NER_ROOT + 'stanford-ner.jar'
 EVENTS = []
 HEADERS = ["Event", "When", "Where", "Text"]
@@ -22,15 +22,6 @@ def initialize():
     SYNONYMS_FOR_KEYWORDS['seminar'].append('lecture')
     Utilities.setupLog()
 
-
-#parse input file - read all the input lines
-def parseInputFile(inputFileName):
-    inputString = ""
-    with open(inputFileName, 'r') as inputFile:
-        for line in inputFile:
-            inputString = inputString.join(line)
-
-    return inputString
 
 #perform spell correction
 def performSpellCorrection(line):
@@ -70,7 +61,7 @@ def getCommandLineArgs():
 
 def preProcessData(input):
     # read input file
-    inputData = parseInputFile(inputFileName)
+    inputData = Utilities.parseInputFile(inputFileName)
     # perform spell correction
     correctSentence = performSpellCorrection(inputData)
     # split text into lines based on delimiter

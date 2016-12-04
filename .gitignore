@@ -2,4 +2,5 @@
 *.log
 *iml
 .idea
+baseOutput.txt
 sampleOutput.txt

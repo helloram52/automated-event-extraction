@@ -16,6 +16,19 @@ def split(sentence, delimiter):
 def isEmpty(string):
     return string == '' or string == None
 
+#parse input file - read all the input lines
+def parseInputFile(inputFileName):
+    inputString = ""
+    with open(inputFileName, 'r') as inputFile:
+        for line in inputFile:
+            # print "line: {}".format(line)
+            # line = line.rstrip()
+            # print "\tline: {}".format(line)
+            inputString = "{}{}".format(inputString, line.strip())
+        print "for ended: {}".format(inputString)
+
+    return inputString
+
 def setupLog():
     logging.basicConfig(level=logging.DEBUG,
         format='%(asctime)s %(levelname)s %(message)s',
