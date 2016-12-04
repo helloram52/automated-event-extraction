@@ -24,15 +24,6 @@ def initialize():
     Utilities.setupLog()
 
 
-#parse input file - read all the input lines
-def parseInputFile(inputFileName):
-    inputString = ""
-    with open(inputFileName, 'r') as inputFile:
-        for line in inputFile:
-            inputString = inputString.join(line)
-
-    return inputString
-
 #perform spell correction
 def performSpellCorrection(featureObj):
     checker = SpellChecker("en_US", featureObj.getText())
@@ -74,7 +65,7 @@ def getCommandLineArgs():
 
 def preProcessData(input):
     # read input file
-    inputData = parseInputFile(inputFileName)
+    inputData = Utilities.parseInputFile(inputFileName)
     # split text into lines based on delimiter
     lines = Utilities.split(inputData, ".")
     featureObjects = []
