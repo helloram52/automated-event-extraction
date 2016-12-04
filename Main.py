@@ -5,18 +5,23 @@ from autocorrect import spell
 import timex, Utilities
 from Event import Event
 from nltk.tag import StanfordNERTagger
-
+from tabulate import tabulate
 
 KEYWORDS = ['marriage', 'birthday', 'meeting', 'anniversary', 'seminar']
 SYNONYMS_FOR_KEYWORDS = {}
 PAST_TENSE_TAGS = ['VBD','VBN']
 TIMEX_TAG = "</TIMEX2>"
-STANFORD_NER_PATH = '/Users/vads/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
+#STANFORD_NER_ROOT = "/Users/vads/Downloads/stanford-ner-2014-06-16/"
+STANFORD_NER_ROOT = "/home/ram/Downloads/stanford-ner-2014-06-16/"
+STANFORD_NER_PATH = STANFORD_NER_ROOT + 'stanford-ner.jar'
+EVENTS = []
+HEADERS = ["Event", "When", "Where", "Text"]
 
 def initialize():
     setupKeywords()
     SYNONYMS_FOR_KEYWORDS['seminar'].append('lecture')
     Utilities.setupLog()
+
 
 #parse input file - read all the input lines
 def parseInputFile(inputFileName):
@@ -57,7 +62,11 @@ def isRequiredEvent(line, dict):
     return False, ""
 
 def getCommandLineArgs():
-    return sys.argv[1], sys.argv[2]
+    if len(sys.argv) < 3:
+        print "ERROR: Usage: Main.py <input> <output> <printFlag(0 or 1)>"
+        exit(1)
+
+    return sys.argv[1], sys.argv[2], sys.argv[3]
 
 def preProcessData(input):
     # read input file
@@ -103,11 +112,11 @@ def isEventPast(line):
 
 def parseLocation(event):
     event = re.sub("<TIMEX2>|</TIMEX2>", "", event)
-    print "event: {}".format(event)
+    #print "event: {}".format(event)
 
     entities = []
     try:
-        nerTagger = StanfordNERTagger('/Users/vads/Downloads/stanford-ner-2014-06-16/classifiers/english.muc.7class.distsim.crf.ser.gz', STANFORD_NER_PATH)
+        nerTagger = StanfordNERTagger( STANFORD_NER_ROOT + '/classifiers/english.muc.7class.distsim.crf.ser.gz', STANFORD_NER_PATH)
         entities = nerTagger.tag(event.split())
     except:
         print("Unexpected error:", sys.exc_info()[0])
@@ -117,7 +126,7 @@ def parseLocation(event):
         if entity[1] != 'O':
             result +=  " {}".format( entity[0] )
 
-    print "location: {}".format(result)
+    #print "location: {}".format(result)
     return result
 
 def setupEvent((line, event)):
@@ -130,7 +139,7 @@ if __name__ == '__main__':
     initialize()
 
     #read commmand line parameters
-    inputFileName, outputFileName = getCommandLineArgs()
+    inputFileName, outputFileName, printFeatures = getCommandLineArgs()
 
     #preprocess input data
     lines = preProcessData(inputFileName)
@@ -143,17 +152,21 @@ if __name__ == '__main__':
 
     #for lines identified as events, check each whether any word matches with synonyms for keywords
     for (line, event) in events:
-        print "event: {}".format(event)
+        #print "event: {}".format(event)
         isRequired, eventType = isRequiredEvent(event, SYNONYMS_FOR_KEYWORDS)
         if isRequired:
             eventObj = setupEvent((line, event))
             if not isEventPast(event):
-                Utilities.writeOutput(outputFileName, eventObj.format())
+                #Utilities.writeOutput(outputFileName, eventObj.format() + " Text: "+ line )
+                EVENTS.append([eventObj.type, eventObj.date, eventObj.location, line])
             else:
                 if Utilities.isDateInFuture(event):
-                    Utilities.writeOutput(outputFileName, eventObj.format())
+                    #Utilities.writeOutput(outputFileName, eventObj.format() + " Text: "+ line )
+                    EVENTS.append([eventObj.type, eventObj.date, eventObj.location, line])
                 else:
                     Utilities.writeLog("INFO: Event Detected but is identified as past event                   :" + event)
         else:
             Utilities.writeLog("INFO: Event Detected but event type did not match with required events :" + event)
 
+
+    Utilities.writeOutput(outputFileName, tabulate(EVENTS, headers=HEADERS, tablefmt="grid"))
