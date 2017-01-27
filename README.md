@@ -15,7 +15,7 @@ Pre-requisites:
 
 Input Data Format:
 ------------------
-- An input is a single sentence.
+- Text (.txt) format
 
 References:
 -----------
