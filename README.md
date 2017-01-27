@@ -7,5 +7,5 @@ Identify future calendar events with date and time from text. Five events – Ma
  	* or download from http://www.egenix.com/products/python/mxBase/#Download
   
  ## **NLP Modules** ##
- * NLTK – WordNet, Spell correction, Timex, Named Entity Recognition
+* NLTK – WordNet, Spell correction, Timex, Named Entity Recognition
  
